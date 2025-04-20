@@ -24,8 +24,12 @@ pub struct Argument {
 }
 
 impl Class {
-    pub fn from_str(s: &str) -> Self {
+    pub fn from_str(s: &str) -> Option<Self> {
         let mut lines = s.lines();
+        if !s.lines().nth(1).unwrap().contains("class") {
+            return None;
+        }
+
         let package = lines
             .next()
             .unwrap()
@@ -41,17 +45,25 @@ impl Class {
                 if line.starts_with("//") || line.trim().is_empty() || line == "}" {
                     None
                 } else {
-                    let split = line
+                    let split_owned = line
                         .split(" ")
-                        .skip(1)
                         .take_while(|word| !word.contains("{"))
                         .collect::<Vec<_>>();
-                    let fbody = split[1..].join(" ");
+
+                    let skip_amount = if split_owned[1].contains("(") { 0 } else { 1 };
+                    let fbody = split_owned[skip_amount + 1..].join(" ");
+                    let split = &split_owned[skip_amount..];
                     let (name, args) = fbody.split_once("(").unwrap();
+
+                    let value = if split[0] == "public" {
+                        format!("(constructor)")
+                    } else {
+                        split[0].to_string()
+                    };
 
                     Some(Method {
                         name: name.to_string(),
-                        value: split[0].to_string(),
+                        value,
                         args: args
                             .trim_end_matches(")")
                             .split(",")
@@ -72,7 +84,7 @@ impl Class {
             })
             .collect();
 
-        Class {
+        Some(Class {
             qualified_name: format!("{}.{}", package, name),
             wraps: format!(
                 "{}.{}",
@@ -82,6 +94,6 @@ impl Class {
             package,
             name,
             methods,
-        }
+        })
     }
 }

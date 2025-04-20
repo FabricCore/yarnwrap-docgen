@@ -21,9 +21,9 @@ impl Index {
                 continue;
             }
 
-            let class = Class::from_str(&fs::read_to_string(entry.path()).unwrap());
-
-            self.0.insert(class.qualified_name.clone(), class);
+            if let Some(class) = Class::from_str(&fs::read_to_string(entry.path()).unwrap()) {
+                self.0.insert(class.qualified_name.clone(), class);
+            }
         }
     }
 }
