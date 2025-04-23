@@ -12,4 +12,4 @@ cargo install --path https://github.com/FabricCore/yarnwrap-docgen
 ```sh
 yarnwrap-docgen /path/to/yarnwrap
 ```
-The generate file should be saved at ./index.json
+The generate file should be saved at *./index.json*
