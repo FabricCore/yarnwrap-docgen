@@ -6,7 +6,7 @@ This tool generates index files required for the [**Yarnwrap index site**](https
 
 1. Install using cargo.
 ```sh
-cargo install --path https://github.com/FabricCore/yarnwrap-docgen
+cargo install --git https://github.com/FabricCore/yarnwrap-docgen
 ```
 2. Run command
 ```sh
