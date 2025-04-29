@@ -18,7 +18,7 @@ pub struct Method {
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub is_static: bool,
     #[serde(skip_serializing_if = "std::ops::Not::not")]
-    pub is_constructor: bool
+    pub is_constructor: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -55,10 +55,7 @@ impl Class {
                         .collect::<Vec<_>>();
 
                     let skip_amount = if split_owned[1].contains("(") { 0 } else { 1 };
-                    let fbody = split_owned[skip_amount + 1..].join(" ");
                     let mut split = &split_owned[skip_amount..];
-                    let (name, args) = fbody.split_once("(").unwrap();
-
                     let mut is_static = false;
                     let mut is_constructor = false;
 
@@ -72,8 +69,12 @@ impl Class {
                             split = &split[1..];
                             split[0].to_string()
                         }
-                        _ => split[0].to_string()
+                        _ => split[0].to_string(),
                     };
+
+                    let fbody = split[1..].join(" ");
+
+                    let (name, args) = fbody.split_once("(").unwrap();
 
                     Some(Method {
                         name: name.to_string(),
