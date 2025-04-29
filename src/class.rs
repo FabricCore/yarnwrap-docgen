@@ -15,6 +15,10 @@ pub struct Method {
     pub name: String,
     pub value: String,
     pub args: Vec<Argument>,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub is_static: bool,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub is_constructor: bool
 }
 
 #[derive(Serialize, Deserialize)]
@@ -38,7 +42,7 @@ impl Class {
             .1
             .trim_end_matches(";")
             .to_string();
-        let name = lines.next().unwrap().split(" ").nth(2).unwrap().to_string();
+        let class_name = lines.next().unwrap().split(" ").nth(2).unwrap().to_string();
 
         let methods = lines
             .filter_map(|line| {
@@ -52,13 +56,23 @@ impl Class {
 
                     let skip_amount = if split_owned[1].contains("(") { 0 } else { 1 };
                     let fbody = split_owned[skip_amount + 1..].join(" ");
-                    let split = &split_owned[skip_amount..];
+                    let mut split = &split_owned[skip_amount..];
                     let (name, args) = fbody.split_once("(").unwrap();
 
-                    let value = if split[0] == "public" {
-                        format!("(constructor)")
-                    } else {
-                        split[0].to_string()
+                    let mut is_static = false;
+                    let mut is_constructor = false;
+
+                    let value = match split[0] {
+                        "public" => {
+                            is_constructor = true;
+                            class_name.clone()
+                        }
+                        "static" => {
+                            is_static = true;
+                            split = &split[1..];
+                            split[0].to_string()
+                        }
+                        _ => split[0].to_string()
                     };
 
                     Some(Method {
@@ -79,20 +93,22 @@ impl Class {
                                 }
                             })
                             .collect(),
+                        is_static,
+                        is_constructor,
                     })
                 }
             })
             .collect();
 
         Some(Class {
-            qualified_name: format!("{}.{}", package, name),
+            qualified_name: format!("{}.{}", package, class_name),
             wraps: format!(
                 "{}.{}",
                 package.replacen("yarnwrap", "net.minecraft", 1),
-                name
+                class_name
             ),
             package,
-            name,
+            name: class_name,
             methods,
         })
     }
